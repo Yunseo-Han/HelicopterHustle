@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Orientation Data Sender</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #e8f4f8, #f1e9f5, #fce8d8);
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .big-button {
+      display: inline-block;
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .big-button.stop {
+      background-color: #FF5722;
+    }
+
+    .console {
+      text-align: left;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: rgba(242, 242, 242, 0);
+      height: 200px;
+      overflow-y: hidden;
+      position: relative;
+    }
+
+    .console::before {
+      content: "";
+      position: absolute;
+      bottom: -5px; /* Increase the value for a taller border */
+      left: 0;
+      width: 100%;
+      height: 200px; /* Increase the value for a taller border */
+      background: linear-gradient(to top, #f1e9f5, rgba(242, 242, 242, 0));
+    }
+
+    .console p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Orientation Data Sender</h1>
+  <button class="big-button" onclick="toggleSending()">Start Sending</button>
+  <div class="console" id="console"></div>
+
+  <script>
+    // Create a WebSocket variable
+    let socket;
+    let hasPermissions = false;
+    let consoleElement = document.getElementById('console');
+
+    // Function to send orientation data
+    function sendOrientationData(data) {
+      if (socket.readyState === WebSocket.OPEN) {
+        const message = JSON.stringify(data);
+        socket.send(message);
+      } else {
+        addToConsole('Socket connection was unexpectedly closed.');
+        toggleSending();
+      }
+    }
+
+    // get button
+    let button = document.querySelector('.big-button');
+
+    function toggleSending() {
+      if (button.classList.contains('stop')) stopSending();
+      else startSending();
+    }
+
+    // Function to start sending orientation data
+    async function startSending() {
+      // Request permission to access the device orientation
+      if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        addToConsole('Requesting permission for device orientation...');
+        await DeviceOrientationEvent.requestPermission()
+          .then((permissionState) => {
+            hasPermissions = permissionState === "granted";
+          })
+          .catch(console.error);
+      } else {
+        // For older browsers that do not support permission request
+        addToConsole('Browser does not need permission for device orientation');
+        hasPermissions = true;
+      }
+
+      // Establish a WebSocket connection
+      socket = new WebSocket(`wss://${location.host}`);
+
+      // WebSocket onopen event
+      socket.onopen = () => {
+        button.textContent = 'Stop Sending';
+        button.classList.add('stop');
+
+        addToConsole('Adding device orientation event listener...');
+        if (!hasPermissions) return;
+        window.addEventListener("deviceorientation", handleOrientation, true);
+        addToConsole("WebSocket connection established.");
+      };
+      
+      // WebSocket onerror event
+      socket.onerror = (error) => {
+        console.error("WebSocket error: " + JSON.stringify(error));
+      };
+
+      socket.onmessage = (event) => {
+        addToConsole("Received message: " + event.data);
+        const receivedData = JSON.parse(event.data);
+      };
+    }
+    
+    // Function to stop sending orientation data
+    function stopSending() {
+      button.textContent = 'Start Sending';
+      button.classList.remove('stop');
+
+      window.removeEventListener("deviceorientation", handleOrientation, true);
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+        addToConsole("WebSocket connection closed.");
+      }
+    }
+
+    // Event handler for device orientation
+    function handleOrientation(event) {
+      const orientationData = {
+        beta: event.beta,
+        gamma: event.gamma
+      };
+      sendOrientationData(orientationData);
+    }
+
+    // Function to add a message to the console
+    function addToConsole(message) {
+      const p = document.createElement("p");
+      p.textContent = message;
+      consoleElement.insertBefore(p, consoleElement.firstChild);
+
+    }
+  </script>
+</body>
+</html>
