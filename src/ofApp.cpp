@@ -39,7 +39,7 @@ void ofApp::setup(){
     
 //    mars.loadModel("geo/mars-low-5x-v2.obj");
 //    mars.loadModel("geo/moon-houdini.obj");
-    mars.loadModel("geo/city.obj");
+    mars.loadModel("geo/triangleSubdividedCity.obj");
     mars.setScaleNormalization(false);
     
     // create sliders for testing
