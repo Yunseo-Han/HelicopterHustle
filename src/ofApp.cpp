@@ -53,6 +53,8 @@ void ofApp::setup(){
     
     cout << "number of meshes in Terrain: " << mars.getNumMeshes() << endl;
     cout << "number of meshes in playerModel: " << playerModel.getNumMeshes() << endl;
+    
+//    TODO: REVIEW
     bboxList.clear();
     for (int i = 0; i < playerModel.getMeshCount(); i++) {
         bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
@@ -79,7 +81,7 @@ void ofApp::setup(){
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){	
+void ofApp::update(){
 	playerModel.yaw(-heldDirection.x);
 	playerNode.panDeg(-heldDirection.x);
 	
@@ -95,13 +97,19 @@ void ofApp::update(){
 
 	playerNode.setPosition(playerModel.getPosition());
     
+    ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
+    ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
     
-    bboxList.clear();
-    for (int i = 0; i < playerModel.getMeshCount(); i++) {
-        bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
-    }
+    Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    
     colBoxList.clear();
-    octree.intersect(bboxList, octree.root, colBoxList);
+    octree.intersect(bounds, octree.root, colBoxList);
+    
+    if (colBoxList.size() > 0) {
+        
+    }
+    
+
 }
 
 //--------------------------------------------------------------
@@ -132,23 +140,26 @@ void ofApp::draw(){
 
 			if (bDisplayBBoxes) {
 				ofNoFill();
+                
 				ofSetColor(ofColor::white);
 				for (int i = 0; i < playerModel.getNumMeshes(); i++) {
 					ofPushMatrix();
 					ofMultMatrix(playerModel.getModelMatrix());
-					ofRotate(-90, 1, 0, 0);
+//					ofRotate(-90, 1, 0, 0);
 					Octree::drawBox(bboxList[i]);
 					ofPopMatrix();
 				}
+                
 
 				ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
 				ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
 
 				Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 				ofNoFill();
-				ofSetColor(ofColor::white);
+				ofSetColor(ofColor::green);
 				Octree::drawBox(bounds);
 
+//                ofSetcolor(ofColor::white)
 				ofSetColor(ofColor::teal); // draw colliding boxes
 				for (int i = 0; i < colBoxList.size(); i++) {
 					Octree::drawBox(colBoxList[i]);
