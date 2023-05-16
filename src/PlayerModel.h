@@ -70,5 +70,7 @@ public:
 	float angularMass = 2.0; // moment of inertia
 	float angularVelocity = 0;
 	float angularForce = 0;
+    
+    
 
 };

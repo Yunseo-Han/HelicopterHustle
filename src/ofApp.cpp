@@ -33,15 +33,16 @@ void ofApp::setup(){
 	//
 	initLightingAndMaterials();
 
-	string marsObjPath = "geo/mars-low-5x-v2.obj";
-	mars.loadModel(marsObjPath);
+//	string marsObjPath = "geo/scaledPlane.obj";
+    mars.loadModel("geo/mars-low-5x-v2.obj");
+//	mars.loadModel(marsObjPath);
 	mars.setScaleNormalization(false);
 
     // position the player node
     playerNode.setGlobalPosition(0, 0, 0);
 	// playerNode.pan(180);
 
-    // load helicopter model
+    // load helicopter models
     playerModel.loadModel("geo/helicopter.obj");
     bLanderLoaded = true;
 
@@ -50,7 +51,8 @@ void ofApp::setup(){
     // playerModel.setRotation(playerNode.getOrientationEuler());
     // playerModel.turnAround(); // turn it around
     
-    cout << "number of meshes: " << playerModel.getNumMeshes() << endl;
+    cout << "number of meshes in Terrain: " << mars.getNumMeshes() << endl;
+    cout << "number of meshes in playerModel: " << playerModel.getNumMeshes() << endl;
     bboxList.clear();
     for (int i = 0; i < playerModel.getMeshCount(); i++) {
         bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
@@ -92,6 +94,14 @@ void ofApp::update(){
 	playerModel.integrate();
 
 	playerNode.setPosition(playerModel.getPosition());
+    
+    
+    bboxList.clear();
+    for (int i = 0; i < playerModel.getMeshCount(); i++) {
+        bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
+    }
+    colBoxList.clear();
+    octree.intersect(bboxList, octree.root, colBoxList);
 }
 
 //--------------------------------------------------------------
@@ -274,10 +284,10 @@ void ofApp::keyPressed(int key) {
 	case 'v':
 		bDisplayPoints = !bDisplayPoints;
 		break;
-    // case 'W':
-	// case 'w':
-	// 	bWireframe = !bWireframe;
-	// 	break;
+     case 'W':
+	 case 'w':
+	 	bWireframe = !bWireframe;
+	 	break;
 	case OF_KEY_ALT:
 		easyCam.enableMouseInput();
 		bAltKeyDown = true;
@@ -327,44 +337,44 @@ void ofApp::mouseReleased(int x, int y, int button){
 //
 // support drag-and-drop of model (.obj) file loading.  when
 // model is dropped in viewport, place origin under cursor
-//
-// void ofApp::dragEvent(ofDragInfo dragInfo){ 
-//     if (!lander.loadModel(dragInfo.files[0])) return;
-//     bLanderLoaded = true;
-//     lander.setScaleNormalization(false);
-//     lander.setPosition(0, 0, 0);
-//     cout << "number of meshes: " << lander.getNumMeshes() << endl;
-//     bboxList.clear();
-//     for (int i = 0; i < lander.getMeshCount(); i++) {
-//         bboxList.push_back(Octree::meshBounds(lander.getMesh(i)));
-//     }
 
+// void ofApp::dragEvent(ofDragInfo dragInfo){
+//     if (!playerModel.loadModel(dragInfo.files[0])) return;
+//     bLanderLoaded = true;
+//     playerModel.setScaleNormalization(false);
+//     playerModel.ofxAssimpModelLoader::setPosition(0, 0, 0);
+//     cout << "number of meshes: " << playerModel.getNumMeshes() << endl;
+//     bboxList.clear();
+//     for (int i = 0; i < playerModel.getMeshCount(); i++) {
+//         bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
+//     }
+//
 //     glm::vec3 origin = followCam.getPosition();
 //     glm::vec3 camAxis = followCam.getZAxis();
 //     glm::vec3 mouseWorld = followCam.screenToWorld(glm::vec3(mouseX, mouseY, 0));
 //     glm::vec3 mouseDir = glm::normalize(mouseWorld - origin);
 //     float distance;
-
+//
 //     bool hit = glm::intersectRayPlane(origin, mouseDir, glm::vec3(0, 0, 0), camAxis, distance);
 //     if (!hit) return;
-
-//     // find the point of intersection on the plane using the distance 
+//
+//     // find the point of intersection on the plane using the distance
 //     // We use the parameteric line or vector representation of a line to compute
 //     //
 //     // p' = p + s * dir;
 //     //
 //     glm::vec3 intersectPoint = origin + distance * mouseDir;
-
+//
 //     // Now position the lander's origin at that intersection point
 //     //
-//     glm::vec3 min = lander.getSceneMin();
-//     glm::vec3 max = lander.getSceneMax();
+//     glm::vec3 min = playerModel.getSceneMin();
+//     glm::vec3 max = playerModel.getSceneMax();
 //     float offset = (max.y - min.y) / 2.0;
-//     lander.setPosition(intersectPoint.x, intersectPoint.y - offset, intersectPoint.z);
-//     playerNode.setGlobalPosition(lander.getPosition());
-
+//     playerModel.ofxAssimpModelLoader::setPosition(intersectPoint.x, intersectPoint.y - offset, intersectPoint.z);
+//     playerNode.setGlobalPosition(playerModel.getPosition());
+//
 //     landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-
+//
 //     followCam.setParent(playerNode);
 // }
 

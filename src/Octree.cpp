@@ -215,14 +215,35 @@ bool Octree::intersect(const Box &box, TreeNode & node, vector<Box> & boxListRtn
 	return intersected;
 }
 
-void Octree::draw(TreeNode & node, int numLevels, int level) {
-	if (level >= numLevels) return;
+bool Octree::intersect(const vector<Box> boundingBoxes, TreeNode & node, vector<Box> & boxListRtn) {
+    for (int i=0; i<boundingBoxes.size(); i++) {
+        if (!node.box.overlap(boundingBoxes[i])) return false;
+    }
+    if (node.points.size() == 1) {
+        boxListRtn.push_back(node.box);
+        return true;
+    }
+    
+    bool intersected = false;
+    for (auto &child : node.children) {
+        for (int i=0; i<boundingBoxes.size(); i++) {
+            if (intersect(boundingBoxes[i], child, boxListRtn)) intersected = true;
+        }
+    }
 
-	ofSetColor(colors[level % colors.size()]);
-	drawBox(node.box);
-
-	for (int i = 0; i < node.children.size(); ++i) draw(node.children.at(i), numLevels, level + 1);
+    return intersected;
 }
+
+void Octree::draw(TreeNode & node, int numLevels, int level) {
+    if (level >= numLevels) return;
+
+    ofSetColor(colors[level % colors.size()]);
+    drawBox(node.box);
+
+    for (int i = 0; i < node.children.size(); ++i) draw(node.children.at(i), numLevels, level + 1);
+}
+
+
 
 // Optional
 //
