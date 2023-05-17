@@ -55,6 +55,7 @@ public:
 	ofLight light;
 	Box boundingBox, landerBounds;
 	vector<Box> colBoxList;
+    vector<int> colPointList;
 	bool bLanderSelected = false;
 	Octree octree;
 	TreeNode selectedNode;

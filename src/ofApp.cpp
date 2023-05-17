@@ -102,14 +102,18 @@ void ofApp::update(){
     
     Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
     
+    // collision
     colBoxList.clear();
-    octree.intersect(bounds, octree.root, colBoxList);
-    
-    if (colBoxList.size() > 0) {
-        
-    }
-    
-
+    colPointList.clear();
+//    if (octree.intersect(bounds, octree.root, colBoxList, colPointList)) {
+//        ofVec3f impulseNormal;
+//
+//        for (int i=0; i<colPointList.size(); i++) {
+//            impulseNormal += mars.getMesh(0).getNormal(colPointList[i]);
+//        }
+//        impulseNormal = impulseNormal.normalize();
+//        playerModel.force += impulseNormal;
+//    }
 }
 
 //--------------------------------------------------------------

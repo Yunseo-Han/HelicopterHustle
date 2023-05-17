@@ -215,6 +215,25 @@ bool Octree::intersect(const Box &box, TreeNode & node, vector<Box> & boxListRtn
 	return intersected;
 }
 
+// for getting points with boxes
+bool Octree::intersect(const Box &box, TreeNode & node, vector<Box> & boxListRtn, vector<int> & pointListRtn) {
+    if (!node.box.overlap(box)) return false;
+    if (node.points.size() == 1) {
+        boxListRtn.push_back(node.box);
+        pointListRtn.push_back(node.points[0]);
+        return true;
+    }
+    
+    bool intersected = false;
+    for (auto &child : node.children) {
+        if (intersect(box, child, boxListRtn, pointListRtn)) intersected = true;
+    }
+
+    return intersected;
+}
+
+
+// for multiple bounding boxes
 bool Octree::intersect(const vector<Box> boundingBoxes, TreeNode & node, vector<Box> & boxListRtn) {
     for (int i=0; i<boundingBoxes.size(); i++) {
         if (!node.box.overlap(boundingBoxes[i])) return false;
