@@ -50,6 +50,7 @@ public:
 	ofNode playerNode;
 
 	ofxAssimpModelLoader mars;
+	ofMesh terrainMesh;
 	PlayerModel playerModel;
     glm::vec3 heldDirection = glm::vec3(0, 0, 0);
 	ofLight light;

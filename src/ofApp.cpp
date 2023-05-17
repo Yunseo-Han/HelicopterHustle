@@ -35,8 +35,12 @@ void ofApp::setup(){
 
 //	string marsObjPath = "geo/scaledPlane.obj";
     mars.loadModel("geo/mars-low-5x-v2.obj");
+    // mars.loadModel("geo/mars-low-5x-v2.obj", true); // TODO: should we set optimize to true?
 //	mars.loadModel(marsObjPath);
 	mars.setScaleNormalization(false);
+
+
+	terrainMesh = mars.getMesh(0);
 
     // position the player node
     playerNode.setGlobalPosition(0, 0, 0);
@@ -105,15 +109,18 @@ void ofApp::update(){
     // collision
     colBoxList.clear();
     colPointList.clear();
-//    if (octree.intersect(bounds, octree.root, colBoxList, colPointList)) {
-//        ofVec3f impulseNormal;
-//
-//        for (int i=0; i<colPointList.size(); i++) {
-//            impulseNormal += mars.getMesh(0).getNormal(colPointList[i]);
-//        }
-//        impulseNormal = impulseNormal.normalize();
-//        playerModel.force += impulseNormal;
-//    }
+    if (octree.intersect(bounds, octree.root, colBoxList, colPointList)) {
+        // start with a vertical impulse because normalizing a zero-length vector causes big problems
+	    glm::vec3 impulseNormal(0, 1, 0); 
+
+        for (int i=0; i<colPointList.size(); i++) {
+            impulseNormal += terrainMesh.getNormal(colPointList[i]);
+        }
+
+        impulseNormal = glm::normalize(impulseNormal);
+
+        playerModel.force += impulseNormal;
+   }
 }
 
 //--------------------------------------------------------------
