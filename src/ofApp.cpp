@@ -43,7 +43,7 @@ void ofApp::setup(){
 	terrainMesh = mars.getMesh(0);
 
     // position the player node
-    playerNode.setGlobalPosition(0, 0, 0);
+    playerNode.setGlobalPosition(0, 1, 0);
 	// playerNode.pan(180);
 
     // load helicopter models
@@ -66,9 +66,7 @@ void ofApp::setup(){
         bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
     }
     
-    glm::vec3 min = playerModel.getSceneMin();
-    glm::vec3 max = playerModel.getSceneMax();
-    landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    playerModel.setCollisionBox();
 
 
     followCam.setParent(playerNode);
@@ -119,26 +117,30 @@ void ofApp::update(){
 	rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
     
     
-	ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
-    ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
-    
-    Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    playerModel.setCollisionBox();
     
     // collision
     colBoxList.clear();
     colPointList.clear();
-    if (octree.intersect(bounds, octree.root, colBoxList, colPointList)) {
+    if (octree.intersect(playerModel.collisionBox, octree.root, colBoxList, colPointList)) {
+        // adjust player position to non-colliding state
+        playerModel.setPosition(prevPlayerPosition);
+        
+        // calculate the surface normal
         // start with a vertical impulse because normalizing a zero-length vector causes big problems
-	    glm::vec3 impulseNormal(0, 1, 0); 
-
+        glm::vec3 surfaceNormal(0, 1, 0);
         for (int i=0; i<colPointList.size(); i++) {
-            impulseNormal += terrainMesh.getNormal(colPointList[i]);
+            surfaceNormal += terrainMesh.getNormal(colPointList[i]);
         }
-
-        impulseNormal = glm::normalize(impulseNormal);
-
-        playerModel.force += impulseNormal;
-   }
+        surfaceNormal = glm::normalize(surfaceNormal);
+        
+        
+        // restitution is 0.5
+        glm::vec3 collisionResponse = (1 + 0.5) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
+        playerModel.velocity = collisionResponse;
+    } else {
+        prevPlayerPosition = playerModel.getPosition();
+    }
 }
 
 //--------------------------------------------------------------

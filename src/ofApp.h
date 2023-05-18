@@ -89,4 +89,6 @@ public:
 	vector<Box> bboxList;
 
 	const float selectionRange = 4.0;
+    
+    ofVec3f prevPlayerPosition;
 };
