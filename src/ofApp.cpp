@@ -34,7 +34,7 @@ void ofApp::setup(){
 	initLightingAndMaterials();
 
 //	string marsObjPath = "geo/scaledPlane.obj";
-    mars.loadModel("geo/mars-low-5x-v2.obj");
+    mars.loadModel("geo/highPolyCity.obj");
     // mars.loadModel("geo/mars-low-5x-v2.obj", true); // TODO: should we set optimize to true?
 //	mars.loadModel(marsObjPath);
 	mars.setScaleNormalization(false);
@@ -43,7 +43,7 @@ void ofApp::setup(){
 	terrainMesh = mars.getMesh(0);
 
     // position the player node
-    playerNode.setGlobalPosition(0, 1, 0);
+    playerNode.setGlobalPosition(0, 150, 0);
 	// playerNode.pan(180);
 
     // load helicopter models
