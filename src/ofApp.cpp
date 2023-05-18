@@ -47,13 +47,15 @@ void ofApp::setup(){
 	// playerNode.pan(180);
 
     // load helicopter models
-    playerModel.loadModel("geo/helicopter.obj");
+    playerModel.loadModel("geo/helicopterbody.obj");
     bLanderLoaded = true;
 
     playerModel.setScaleNormalization(false);
     playerModel.setPosition(playerNode.getGlobalPosition());
-    // playerModel.setRotation(playerNode.getOrientationEuler());
-    // playerModel.turnAround(); // turn it around
+    
+	rotorBladesModel.loadModel("geo/rotorblades.obj");
+	rotorBladesModel.setScaleNormalization(false);
+    rotorBladesModel.setPosition(playerNode.getGlobalPosition().x, playerNode.getGlobalPosition().y, playerNode.getGlobalPosition().z);
     
     cout << "number of meshes in Terrain: " << mars.getNumMeshes() << endl;
     cout << "number of meshes in playerModel: " << playerModel.getNumMeshes() << endl;
@@ -91,17 +93,33 @@ void ofApp::update(){
 	
 	if (!bStarted) return;
 
-	glm::vec3 thrustForce = heldDirection.y * 10 * playerModel.getYawAxis();
+	playerModel.throttlePercent += heldDirection.y / 500;
+	playerModel.throttlePercent = ofClamp(playerModel.throttlePercent, 0, 1);
+
+	glm::vec3 thrustForce = playerModel.thrust() * playerModel.getYawAxis();
 	playerModel.force += thrustForce;
 
-	glm::vec3 gravityForce(0, -1.5, 0);
+	float dragCoef = -10;
+	glm::vec3 dragForce = dragCoef * glm::length2(playerModel.velocity) * playerModel.velocity;
+	playerModel.force += dragForce;
+
+	glm::vec3 gravityForce(0, -playerModel.mass, 0);
 	playerModel.force += gravityForce;
 
 	playerModel.integrate();
 
-	playerNode.setPosition(playerModel.getPosition());
+	
+	ofPoint pos = playerModel.getPosition();
+	
+	playerNode.setPosition(pos);
+	rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
+	rotorBladesModel.setRotation(0, playerModel.getRotationAngle(0), 0, 1, 0);
+	rotorBladesModel.setRotation(1, playerModel.getRotationAngle(1), 0, 0, 1);
+	rotorBladesModel.setRotation(2, playerModel.getRotationAngle(2), 1, 0, 0);
+	rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
     
-    ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
+    
+	ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
     ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
     
     Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
@@ -146,6 +164,7 @@ void ofApp::draw(){
 
 		if (bLanderLoaded) {
 			playerModel.drawFaces();
+			rotorBladesModel.drawFaces();
 
 			if (!bTerrainSelected) drawAxis(playerModel.getPosition());
 
@@ -175,6 +194,8 @@ void ofApp::draw(){
 				for (int i = 0; i < colBoxList.size(); i++) {
 					Octree::drawBox(colBoxList[i]);
 				}
+
+				ofFill();
 			}
 		}
 	}
@@ -222,6 +243,15 @@ void ofApp::draw(){
 		ofDrawBitmapString("worst: " + ofToString(worstLatency), 860, 760);
 
         drawConsole();
+
+		ofSetColor(ofColor::black);
+		ofDrawRectangle(50, 660, 5, 100);
+		ofDrawRectangle(60, 660, 5, 100);
+
+		ofSetColor(ofColor::silver);
+		ofDrawRectangle(35, 755 - (100 * playerModel.throttlePercent), 45, 10);
+
+
 	glDepthMask(true);
 }
 

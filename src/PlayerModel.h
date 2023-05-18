@@ -15,7 +15,7 @@ public:
         //
         acceleration = mass == 0 ? glm::vec3(0) : force / mass; // F=ma -> a=F/m
         velocity += acceleration * dt; // dv = a*t
-        velocity *= damping;
+        // velocity *= damping;
         glm::vec3 newPosition = getPosition() + (velocity * dt);
 
 
@@ -61,16 +61,21 @@ public:
         ofxAssimpModelLoader::setRotation(2, deg, 1, 0, 0);
     }
 
+    float thrust() {
+        return maxThrust * throttlePercent;
+    }
+
 	glm::vec3 velocity = glm::vec3(0, 0, 0);
 	glm::vec3 acceleration = glm::vec3(0, 0, 0);
 	glm::vec3 force = glm::vec3(0, 0, 0);
 
-	float mass = 1.0;
+	float mass = 500.0;
 	float damping = .99;
 	float angularMass = 2.0; // moment of inertia
 	float angularVelocity = 0;
 	float angularForce = 0;
     
-    
+    float maxThrust = 1500;
+    float throttlePercent = 0.33;
 
 };

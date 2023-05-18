@@ -1,0 +1,18 @@
+newmtl rotorblades:standardSurface3SG
+illum 4
+Kd 0.04 0.06 0.13
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl rotorblades:standardSurface4SG
+illum 4
+Kd 0.02 0.02 0.02
+Ka 0.09 0.09 0.09
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl rotorblades:standardSurface5SG
+illum 4
+Kd 0.06 0.06 0.06
+Ka 0.15 0.15 0.15
+Tf 1.00 1.00 1.00
+Ni 1.00

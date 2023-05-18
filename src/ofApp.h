@@ -52,6 +52,7 @@ public:
 	ofxAssimpModelLoader mars;
 	ofMesh terrainMesh;
 	PlayerModel playerModel;
+	ofxAssimpModelLoader rotorBladesModel;
     glm::vec3 heldDirection = glm::vec3(0, 0, 0);
 	ofLight light;
 	Box boundingBox, landerBounds;
