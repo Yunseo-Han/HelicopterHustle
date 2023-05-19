@@ -54,6 +54,7 @@ public:
 
 	ofEasyCam easyCam;
 	ofCamera followCam;
+	ofEasyCam skyCam;
 	ofCamera *theCam;
 	ofNode playerNode;
 
@@ -77,6 +78,11 @@ public:
 	TreeNode selectedNode;
 	glm::vec3 mouseDownPos, mouseLastPos;
 	bool bInDrag = false;
+
+	ofSoundPlayer motorSound;
+    ofSoundPlayer collisionSound;
+    ofSoundPlayer popSound;
+    ofSoundPlayer destructionSound;
 
 
 	ofxIntSlider numLevels;
