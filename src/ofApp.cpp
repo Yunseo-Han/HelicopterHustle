@@ -34,7 +34,7 @@ void ofApp::setup(){
 	initLightingAndMaterials();
 
 //	string marsObjPath = "geo/scaledPlane.obj";
-    mars.loadModel("geo/mars-low-5x-v2.obj");
+    mars.loadModel("geo/highPolyCity.obj");
     // mars.loadModel("geo/mars-low-5x-v2.obj", true); // TODO: should we set optimize to true?
 	mars.setScaleNormalization(false);
 
@@ -42,7 +42,8 @@ void ofApp::setup(){
 	terrainMesh = mars.getMesh(0);
 
     // position the player node
-    playerNode.setGlobalPosition(0, 0, 0);
+    playerNode.setGlobalPosition(0, 150, 0);
+	// playerNode.pan(180);
 
     // load helicopter models
     playerModel.loadModel("geo/helicopterbody.obj");
@@ -78,9 +79,7 @@ void ofApp::setup(){
         bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
     }
     
-    glm::vec3 min = playerModel.getSceneMin();
-    glm::vec3 max = playerModel.getSceneMax();
-    landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    playerModel.setCollisionBox();
 
 
     followCam.setParent(playerNode);
@@ -157,26 +156,42 @@ void ofApp::update(){
 	playerModel.integrate();
 
 	
-	ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
-    ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
+	// ofPoint pos = playerModel.getPosition();
+	// playerNode.setPosition(pos);
+	// rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
+	// rotorBladesModel.setRotation(0, playerModel.getRotationAngle(0), 0, 1, 0);
+	// rotorBladesModel.setRotation(1, playerModel.getRotationAngle(1), 0, 0, 1);
+	// rotorBladesModel.setRotation(2, playerModel.getRotationAngle(2), 1, 0, 0);
+	// rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
     
-    landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    // finding altitude of lander from terrain
+    altitudeExists = raySelectWithOctree(altitudeRayIntersection);
+    ofVec3f altitudeRay = pos - altitudeRayIntersection;
+    altitude = glm::length(glm::vec3(altitudeRay.x, altitudeRay.y, altitudeRay.z));
     
     // collision
+    playerModel.setCollisionBox();
     colBoxList.clear();
     colPointList.clear();
-    if (octree.intersect(landerBounds, octree.root, colBoxList, colPointList)) {
+    if (octree.intersect(playerModel.collisionBox, octree.root, colBoxList, colPointList)) {
+        // adjust player position to non-colliding state
+        playerModel.setPosition(prevPlayerPosition);
+        
+        // calculate the surface normal
         // start with a vertical impulse because normalizing a zero-length vector causes big problems
-	    glm::vec3 impulseNormal(0, 1, 0); 
-
+        glm::vec3 surfaceNormal(0, 1, 0);
         for (int i=0; i<colPointList.size(); i++) {
-            impulseNormal += terrainMesh.getNormal(colPointList[i]);
+            surfaceNormal += terrainMesh.getNormal(colPointList[i]);
         }
-
-        impulseNormal = glm::normalize(impulseNormal);
-
-        playerModel.force += impulseNormal;
-   }
+        surfaceNormal = glm::normalize(surfaceNormal);
+        
+        
+        // restitution is 0.5
+        glm::vec3 collisionResponse = (1 + 0.5) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
+        playerModel.velocity = collisionResponse;
+    } else {
+        prevPlayerPosition = pos;
+    }
 }
 
 //--------------------------------------------------------------
@@ -235,7 +250,8 @@ void ofApp::draw(){
 
 				ofNoFill();
 				ofSetColor(ofColor::green);
-				Octree::drawBox(landerBounds);
+				Octree::drawBox(playerModel.collisionBox);
+                ofDrawLine(playerModel.getPosition(), altitudeRayIntersection);
 
 //                ofSetcolor(ofColor::white)
 				ofSetColor(ofColor::teal); // draw colliding boxes
@@ -256,10 +272,10 @@ void ofApp::draw(){
 		mars.drawVertices();
 	}
 
-	if (bPointSelected) { // highlight selected point (draw sphere around selected point)
-		ofSetColor(ofColor::blue);
-		ofDrawSphere(selectedPoint, .1);
-	}
+//	if (bPointSelected) { // highlight selected point (draw sphere around selected point)
+//		ofSetColor(ofColor::blue);
+//		ofDrawSphere(selectedPoint, .1);
+//	}
 	
 	// ofDisableLighting(); // recursively draw octree
 	// int level = 0;
@@ -298,7 +314,10 @@ void ofApp::draw(){
 
 		ofSetColor(ofColor::silver);
 		ofDrawRectangle(35, 755 - (100 * playerModel.throttlePercent), 45, 10);
-
+    
+    ofSetColor(ofColor::green);
+    
+    ofDrawBitmapString("altitude: " + (altitudeExists? ofToString(altitude) : "unknown"), 80, 760);
 
 	glDepthMask(true);
 }
@@ -351,6 +370,9 @@ void ofApp::keyPressed(int key) {
         break;
     case '2':
         theCam = &followCam;
+        break;
+    case 'A':
+    case 'a':
         break;
     case 'B':
 	case 'b':
@@ -433,6 +455,55 @@ void ofApp::keyReleased(int key){
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
 	bInDrag = false;
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button) {
+    
+    // if moving camera, don't allow mouse interaction
+    //
+    if (easyCam.getMouseInputEnabled()) return;
+    
+    // if moving camera, don't allow mouse interaction
+    //
+    if (easyCam.getMouseInputEnabled()) return;
+    
+    // if rover is loaded, test for selection
+    //
+    if (bLanderLoaded) {
+        // selecting lander with mouse
+        glm::vec3 origin = easyCam.getPosition();
+        glm::vec3 mouseWorld = easyCam.screenToWorld(glm::vec3(mouseX, mouseY, 0));
+        glm::vec3 mouseDir = glm::normalize(mouseWorld - origin);
+        
+        
+        bool hit = playerModel.collisionBox.intersect(Ray(Vector3(origin.x, origin.y, origin.z), Vector3(mouseDir.x, mouseDir.y, mouseDir.z)), 0, 10000);
+        if (hit) {
+            bLanderSelected = true;
+            // TODO: RE-IMPLEMENT DRAGGING
+//            mouseDownPos = getMousePointOnPlane(playerModel.getPosition(), easyCam.getZAxis());
+            mouseLastPos = mouseDownPos;
+            bInDrag = true;
+        }
+        else {
+            bLanderSelected = false;
+        }
+    }
+}
+
+bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
+    ofVec3f rayPoint = playerModel.getPosition();
+    ofVec3f rayDir = ofVec3f(0, -1, 0);
+    rayDir.normalize();
+    Ray ray = Ray(Vector3(rayPoint.x, rayPoint.y, rayPoint.z),
+                  Vector3(rayDir.x, rayDir.y, rayDir.z));
+    
+    pointSelected = octree.intersect(ray, octree.root, selectedNode);
+    
+    if (pointSelected) {
+        pointRet = octree.mesh.getVertex(selectedNode.points[0]);
+    }
+    return pointSelected;
 }
 
 //--------------------------------------------------------------
@@ -566,3 +637,5 @@ void ofApp::extractRotationValue(const string& json, const string& key, float& v
         value = stof(valueStr);
     }
 }
+
+

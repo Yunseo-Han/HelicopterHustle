@@ -32,6 +32,12 @@ public:
 	glm::vec3 heading() {
         
     };
+    
+    void setCollisionBox(){
+        ofVec3f min = this->getSceneMin() + pos;
+        ofVec3f max = this->getSceneMax() + pos;
+        collisionBox = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    }
 	
     void setPosition(glm::vec3 pos) {
         ofxAssimpModelLoader::setPosition(pos.x, pos.y, pos.z);
@@ -89,5 +95,7 @@ public:
     
     float maxThrust = 1500;
     float throttlePercent = 0.33;
+    
+    Box collisionBox;
 
 };

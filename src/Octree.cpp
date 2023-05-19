@@ -191,7 +191,7 @@ bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn
 	if (node.points.size() == 1) {
 		nodeRtn = node;
 		return true;
-	}
+	} 
 	
 	for (auto &child : node.children) {
 		if (intersect(ray, child, nodeRtn)) return true;
