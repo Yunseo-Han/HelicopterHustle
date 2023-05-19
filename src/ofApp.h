@@ -7,6 +7,7 @@
 #include <glm/gtx/intersect.hpp>
 #include "ofxLibwebsockets.h"
 #include "PlayerModel.h"
+#include "ParticleEmitter.h"
 
 
 class ofApp : public ofBaseApp{
@@ -48,6 +49,12 @@ public:
 	ofCamera followCam;
 	ofCamera *theCam;
 	ofNode playerNode;
+
+	ofShader particleShader;
+	ofShader explosionShader;
+	
+	ParticleSystem particleSystem;
+	vector<ParticleEmitter> bladeTipEmitters;
 
 	ofxAssimpModelLoader mars;
 	ofMesh terrainMesh;

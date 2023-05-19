@@ -36,7 +36,6 @@ void ofApp::setup(){
 //	string marsObjPath = "geo/scaledPlane.obj";
     mars.loadModel("geo/mars-low-5x-v2.obj");
     // mars.loadModel("geo/mars-low-5x-v2.obj", true); // TODO: should we set optimize to true?
-//	mars.loadModel(marsObjPath);
 	mars.setScaleNormalization(false);
 
 
@@ -44,7 +43,6 @@ void ofApp::setup(){
 
     // position the player node
     playerNode.setGlobalPosition(0, 0, 0);
-	// playerNode.pan(180);
 
     // load helicopter models
     playerModel.loadModel("geo/helicopterbody.obj");
@@ -57,6 +55,20 @@ void ofApp::setup(){
 	rotorBladesModel.setScaleNormalization(false);
     rotorBladesModel.setPosition(playerNode.getGlobalPosition().x, playerNode.getGlobalPosition().y, playerNode.getGlobalPosition().z);
     
+	glm::vec3 offset(2.6, 0.8, 0);
+	for (int i = 0; i < 4; ++i) {
+		ParticleEmitter tipEmitter(&particleSystem);
+		tipEmitter.init();
+		tipEmitter.radius = 0.1;
+		tipEmitter.setRate(200);
+		tipEmitter.setLifespan(1);
+		tipEmitter.setParticleRadius(0.01);
+		tipEmitter.setVelocity(glm::vec3(0, -0.01, 0));
+		tipEmitter.start();
+		bladeTipEmitters.push_back(tipEmitter);
+	}
+
+
     cout << "number of meshes in Terrain: " << mars.getNumMeshes() << endl;
     cout << "number of meshes in playerModel: " << playerModel.getNumMeshes() << endl;
     
@@ -84,17 +96,53 @@ void ofApp::setup(){
 	gui.add(numLevels.setup("Number of Octree Levels", 1, 1, 10));
 	gui.add(timingInfoToggle.setup("Log Timing Info", false));
 	bHide = false;
+
+	particleShader.load("shaders/particle");
+	cout << (particleShader.isLoaded() ? "particleShader loaded" : "particleShader not loaded") << endl;
+	explosionShader.load("shaders/explosion");
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	playerModel.yaw(-heldDirection.x);
 	playerNode.panDeg(-heldDirection.x);
+
+	particleSystem.update();
+
+	ofPoint pos = playerModel.getPosition();
 	
-	if (!bStarted) return;
+	playerNode.setPosition(pos);
+
+	// orient rotor blades in correct position with helicopter body
+	rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
+	rotorBladesModel.setRotation(0, playerModel.getRotationAngle(0), 0, 1, 0);
+	rotorBladesModel.setRotation(1, playerModel.getRotationAngle(1), 0, 0, 1);
+	rotorBladesModel.setRotation(2, playerModel.getRotationAngle(2), 1, 0, 0);
+
+	// rotate blades based on throttle percent
+	rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
+
+
+	for (int i = 0; i < bladeTipEmitters.size(); ++i) {
+		// orient blade tip emitters along with player rotation and rotor spin
+		glm::vec3 offset = glm::vec3(2.6, 0.8, 0); // point to first blade tip
+		offset = glm::rotateY(offset, glm::radians(90.0f * i)); // rotate to current tip
+
+		glm::mat4 matrix = rotorBladesModel.getModelMatrix();
+		glm::vec3 tipPosition = matrix * glm::vec4(offset, 1.0f);
+
+		bladeTipEmitters[i].setPosition(tipPosition);
+		
+		bladeTipEmitters[i].setRate(300 * playerModel.throttlePercent);
+		bladeTipEmitters[i].update();
+	}
 
 	playerModel.throttlePercent += heldDirection.y / 500;
 	playerModel.throttlePercent = ofClamp(playerModel.throttlePercent, 0, 1);
+
+	// only rotational movement is allowed while game is not started
+	if (!bStarted) return;
+
 
 	glm::vec3 thrustForce = playerModel.thrust() * playerModel.getYawAxis();
 	playerModel.force += thrustForce;
@@ -109,25 +157,15 @@ void ofApp::update(){
 	playerModel.integrate();
 
 	
-	ofPoint pos = playerModel.getPosition();
-	
-	playerNode.setPosition(pos);
-	rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
-	rotorBladesModel.setRotation(0, playerModel.getRotationAngle(0), 0, 1, 0);
-	rotorBladesModel.setRotation(1, playerModel.getRotationAngle(1), 0, 0, 1);
-	rotorBladesModel.setRotation(2, playerModel.getRotationAngle(2), 1, 0, 0);
-	rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
-    
-    
 	ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
     ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
     
-    Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
+    landerBounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
     
     // collision
     colBoxList.clear();
     colPointList.clear();
-    if (octree.intersect(bounds, octree.root, colBoxList, colPointList)) {
+    if (octree.intersect(landerBounds, octree.root, colBoxList, colPointList)) {
         // start with a vertical impulse because normalizing a zero-length vector causes big problems
 	    glm::vec3 impulseNormal(0, 1, 0); 
 
@@ -166,6 +204,20 @@ void ofApp::draw(){
 			playerModel.drawFaces();
 			rotorBladesModel.drawFaces();
 
+			ofSetColor(ofColor::gray);
+			for (int i = 0; i < bladeTipEmitters.size(); ++i) bladeTipEmitters[i].draw();
+
+			ofEnableBlendMode(OF_BLENDMODE_ADD);
+				particleShader.begin();
+					for (int i = 0; i < particleSystem.particles.size(); i++) {
+						float age = particleSystem.particles[i].age();
+						particleShader.setAttribute1f(1, age);
+						ofSetColor(255, 255, 255, ofMap(age, 0, 1, 255 * playerModel.throttlePercent, 0));
+						particleSystem.particles[i].draw();
+					}
+				particleShader.end();
+			ofDisableBlendMode();
+
 			if (!bTerrainSelected) drawAxis(playerModel.getPosition());
 
 			if (bDisplayBBoxes) {
@@ -181,13 +233,9 @@ void ofApp::draw(){
 				}
                 
 
-				ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
-				ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
-
-				Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 				ofNoFill();
 				ofSetColor(ofColor::green);
-				Octree::drawBox(bounds);
+				Octree::drawBox(landerBounds);
 
 //                ofSetcolor(ofColor::white)
 				ofSetColor(ofColor::teal); // draw colliding boxes
@@ -350,6 +398,8 @@ void ofApp::keyPressed(int key) {
 	case ' ':
 		bStarted = true;
 		break;
+	case OF_KEY_ESC:
+		ofExit();
 	}
 
 	if (heldDirection.y == 0) {
