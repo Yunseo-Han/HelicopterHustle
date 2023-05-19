@@ -57,16 +57,27 @@ void ofApp::setup(){
     // this adds your app as a listener for the server
     server.addListener(this);
     
+	// position the player node
+    playerNode.setGlobalPosition(0, 80, 0);
 
+	easyCam.setGlobalPosition(playerNode.getGlobalPosition() + glm::vec3(5, 5, -20));
+	easyCam.setTarget(playerNode);	
 	easyCam.setDistance(10);
 	easyCam.setNearClip(.1);
 	easyCam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
 	easyCam.disableMouseInput();
 
-	followCam.setPosition(0, 25, 0);
-	followCam.lookAt(glm::vec3(0, 0, 0));
+	skyCam.setGlobalPosition(playerNode.getGlobalPosition() + glm::vec3(60, 110, -160));
+	skyCam.setTarget(playerNode);	
+	skyCam.setNearClip(.1);
+	skyCam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
+	skyCam.disableMouseInput();
+
 	followCam.setNearClip(.1);
 	followCam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
+	followCam.setParent(playerNode);
+    followCam.setPosition(0, 5, 10);
+    followCam.lookAt(playerNode);
 
     theCam = &easyCam;
 
@@ -86,9 +97,17 @@ void ofApp::setup(){
 
 	terrainMesh = mars.getMesh(0);
 
-    // position the player node
-    playerNode.setGlobalPosition(0, 80, 0);
-	// playerNode.pan(180);
+	motorSound.load("sounds/motor_sound.mp3");
+	motorSound.setLoop(true);
+	motorSound.setVolume(.1);
+    motorSound.play();
+
+	popSound.load("sounds/pop_sound.mp3");
+
+	collisionSound.load("sounds/collision_sound.mp3");
+
+    destructionSound.load("sounds/destruction_sound.mp3");
+	destructionSound.setVolume(0.7);
 
     // load helicopter models
     playerModel.loadModel("geo/helicopterbody.obj");
@@ -114,6 +133,12 @@ void ofApp::setup(){
 		bladeTipEmitters.push_back(tipEmitter);
 	}
 
+	explosionEmitter.init();
+	explosionEmitter.setOneShot(true);
+	explosionEmitter.setLifespan(10);
+	explosionEmitter.setVelocity(ofVec3f(3));
+	explosionEmitter.setEmitterType(EmitterType::RadialEmitter);
+	explosionEmitter.setGroupSize(400);
 
     cout << "number of meshes in Terrain: " << mars.getNumMeshes() << endl;
     cout << "number of meshes in playerModel: " << playerModel.getNumMeshes() << endl;
@@ -138,9 +163,6 @@ void ofApp::setup(){
     
     playerModel.setCollisionBox();
     
-    followCam.setParent(playerNode);
-    followCam.setPosition(0, 5, 10);
-    followCam.lookAt(playerNode);
 	
 	cout << "Building octree..." << endl;
 	ofResetElapsedTimeCounter();
@@ -164,10 +186,13 @@ void ofApp::update(){
 	playerNode.panDeg(-heldDirection.x);
 
 	particleSystem.update();
-    
+	explosionEmitter.sys->update();
+    explosionEmitter.sys->integrate();
 
 	ofPoint pos = playerModel.getPosition();
 	playerNode.setPosition(pos);
+	easyCam.setTarget(playerNode);	
+	skyCam.setTarget(playerNode);
 
 	// orient rotor blades in correct position with helicopter body
 	rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
@@ -201,10 +226,14 @@ void ofApp::update(){
 	// only rotational movement is allowed while game is not started
 	if (!bStarted) return;
         
-    if (crashed) return;
+    if (crashed) {
+		explosionEmitter.update();
+		return;
+	}
         
     if (wonGame) return;
 
+	motorSound.setVolume(playerModel.throttlePercent);
 
 	glm::vec3 thrustForce = playerModel.thrust() * playerModel.getYawAxis();
 	playerModel.force += thrustForce;
@@ -254,6 +283,12 @@ void ofApp::update(){
                 if (playerModel.velocity.y < -4) {
                     cout << playerModel.velocity.y << endl;
                     crashed = true;
+					destructionSound.play();
+
+					explosionEmitter.setPosition(playerModel.getPosition());
+					explosionEmitter.start();
+					explosionEmitter.update();
+					explosionEmitter.sys->update();
                 }
                 
                 landedAreas[i] = true;
@@ -271,11 +306,35 @@ void ofApp::update(){
         }
         surfaceNormal = glm::normalize(surfaceNormal);
         
+		float landingSpeed = glm::length2(playerModel.velocity);
+		cout << "landing speed: " << landingSpeed << endl;
+
+        collisionSound.setVolume(ofMap(landingSpeed, 0, 30, 0, 0.7));
+		collisionSound.play();
+
+        
+        // old collision response??
+//        // restitution is 0.9
+//        glm::vec3 collisionResponse = (1 + 0.9) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal) * ofGetFrameRate();
+//        playerModel.force = collisionResponse;
+        
+        
+        
 		// playerModel.setPosition(playerModel.getPosition() + surfaceNormal * 0.01);
 		playerModel.velocity *= -0.9;
 
 		float restitution = 15000;
         glm::vec3 collisionResponse = (1 + restitution) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
+
+        playerModel.force += collisionResponse;
+        
+        // Landing area check
+        for (int i=0; i<landingPadList.size(); i++) {
+            if (landingPadList[i].overlap(playerModel.collisionBox)) {
+				if (!landedAreas[i]) popSound.play();
+                landedAreas[i] = true;
+            }
+        }
     } else {
         prevPlayerPosition = playerModel.getPosition();
     }
@@ -370,6 +429,15 @@ void ofApp::draw(){
 					}
 				particleShader.end();
 			ofDisableBlendMode();
+
+			if (crashed) {
+				ofEnableBlendMode(OF_BLENDMODE_ADD);
+					explosionShader.begin();
+						ofSetColor(ofColor::red);
+						explosionEmitter.sys->draw();
+					explosionShader.end();
+				ofDisableBlendMode();
+			}
             
             
             ofNoFill();
@@ -505,6 +573,9 @@ void ofApp::keyPressed(int key) {
         break;
     case '2':
         theCam = &followCam;
+        break;
+	case '3':
+        theCam = &skyCam;
         break;
     case 'A':
     case 'a':

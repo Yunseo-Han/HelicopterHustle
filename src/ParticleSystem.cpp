@@ -27,6 +27,31 @@ void ParticleSystem::reset() {
 	}
 }
 
+void ParticleSystem::integrate() {
+	if (particles.size() == 0) return;
+		// update forces on all particles first 
+	
+	for (int i = 0; i < particles.size(); i++) {
+		for (int k = 0; k < forces.size(); k++) {
+			if (!forces[k]->applied)
+				forces[k]->updateForce( &particles[i] );
+		}
+	}
+
+	// update all forces only applied once to "applied"
+	// so they are not applied again.
+	//
+	for (int i = 0; i < forces.size(); i++) {
+		if (forces[i]->applyOnce)
+			forces[i]->applied = true;
+	}
+
+	// integrate all the particles in the store
+	//
+	for (int i = 0; i < particles.size(); i++)
+		particles[i].integrate();
+}
+
 void ParticleSystem::update() {
 	// check if empty and just return
 	if (particles.size() == 0) return;

@@ -32,7 +32,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "163"
             endingLineNumber = "163"
-            landmarkName = "ofApp::update()"
+            landmarkName = "ofApp::setup()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
