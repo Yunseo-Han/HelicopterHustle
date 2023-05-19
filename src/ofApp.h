@@ -116,4 +116,6 @@ public:
     
     bool crashed = false;
     bool wonGame = false;
+    
+    ofImage bgSkyImage;
 };

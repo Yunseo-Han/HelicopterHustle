@@ -3,6 +3,13 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    
+    // Load sprites
+    if (bgSkyImage.load("image/sky.png")) {
+        cout << "loaded sky" << endl;
+    }
+    
+    
 
     ofxLibwebsockets::ServerOptions options = ofxLibwebsockets::defaultServerOptions();
     options.port = 9092;
@@ -239,7 +246,11 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofBackground(ofColor::black);
+    glDepthMask(false);
+    ofBackground(ofColor::white);
+    ofSetColor(ofColor::white);
+    bgSkyImage.draw(0, 0, ofGetWidth(), ofGetHeight());
+    glDepthMask(true);
 
 	theCam->begin();
     
@@ -364,11 +375,11 @@ void ofApp::draw(){
 		if (!bStarted) ofDrawBitmapString("Press space to start", 400, 400);
     
     if (crashed) {
-        ofDrawBitmapString("CRASHED", ofGetWindowWidth()/2, ofGetWindowHeight()/2);
+        ofDrawBitmapString("CRASHED", 400, 400);
     }
     
     if (wonGame) {
-        ofDrawBitmapString("SUCCESSFUL LANDING IN ALL AREAS", ofGetWindowWidth()/2, ofGetWindowHeight()/2);
+        ofDrawBitmapString("SUCCESSFUL LANDING IN ALL AREAS", 400, 400);
     }
 
         string serverStatus = bSetup ? "WebSocket server setup at " + ofToString(server.getPort()) : "WebSocket setup failed :(";
