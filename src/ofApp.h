@@ -118,4 +118,5 @@ public:
     bool wonGame = false;
     
     ofImage bgSkyImage;
+    ofLight keyLight, fillLight, rimLight;
 };

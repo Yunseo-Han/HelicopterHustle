@@ -9,6 +9,44 @@ void ofApp::setup(){
         cout << "loaded sky" << endl;
     }
     
+    // lights
+    ofEnableLighting();
+    keyLight.setup();
+    keyLight.enable();
+    keyLight.setAreaLight(1, 1);
+    keyLight.setAmbientColor(ofFloatColor(0.1, 0.1, 0.1));
+    keyLight.setDiffuseColor(ofFloatColor(1, 1, 1));
+    keyLight.setSpecularColor(ofFloatColor(1, 1, 1));
+
+    keyLight.rotate(45, ofVec3f(0, 1, 0));
+    keyLight.rotate(-45, ofVec3f(1, 0, 0));
+    keyLight.setPosition(300, 300, 150);
+
+    fillLight.setup();
+    fillLight.enable();
+    fillLight.setSpotlight();
+    fillLight.setScale(1);
+//1    fillLight.setSpotlightCutOff(1000);
+    fillLight.setAttenuation(2, 1, 1);
+    fillLight.setAmbientColor(ofFloatColor(1, 1, 1));
+    fillLight.setDiffuseColor(ofFloatColor(1, 1, 1));
+    fillLight.setSpecularColor(ofFloatColor(1, 1, 1));
+    fillLight.rotate(-20, ofVec3f(1, 0, 0));
+    fillLight.rotate(-45, ofVec3f(0, 1, 0));
+    fillLight.setPosition(-157, 200, 300);
+
+    rimLight.setup();
+    rimLight.enable();
+    rimLight.setSpotlight();
+    rimLight.setScale(1);
+//    rimLight.setSpotlightCutOff(30);
+    rimLight.setAttenuation(1, 1, 1);
+    rimLight.setAmbientColor(ofFloatColor(1, 1, 1));
+    rimLight.setDiffuseColor(ofFloatColor(1, 1, 1));
+    rimLight.setSpecularColor(ofFloatColor(1, 1, 1));
+    rimLight.rotate(180, ofVec3f(0, 1, 0));
+    rimLight.setPosition(62, 100, -407);
+    
     
 
     ofxLibwebsockets::ServerOptions options = ofxLibwebsockets::defaultServerOptions();
@@ -38,7 +76,7 @@ void ofApp::setup(){
 
 	// setup rudimentary lighting 
 	//
-	initLightingAndMaterials();
+//	initLightingAndMaterials();
 
 //	string marsObjPath = "geo/scaledPlane.obj";
     mars.loadModel("geo/RemeshedNoLandingPads.obj");
@@ -111,7 +149,6 @@ void ofApp::setup(){
 
 	gui.setup();
 	gui.add(numLevels.setup("Number of Octree Levels", 1, 1, 10));
-	gui.add(timingInfoToggle.setup("Log Timing Info", false));
 	bHide = false;
 
 	particleShader.load("shaders/particle");
@@ -251,10 +288,53 @@ void ofApp::draw(){
     ofSetColor(ofColor::white);
     bgSkyImage.draw(0, 0, ofGetWidth(), ofGetHeight());
     glDepthMask(true);
+    
+    glDepthMask(false);
+        if (!bHide) gui.draw();
+        
+        ofSetColor(ofColor::white);
+
+        if (!bStarted) ofDrawBitmapString("Press space to start", 400, 400);
+    
+    if (crashed) {
+        ofDrawBitmapString("CRASHED", 400, 400);
+    }
+    
+    if (wonGame) {
+        ofDrawBitmapString("SUCCESSFUL LANDING IN ALL AREAS", 400, 400);
+    }
+
+        string serverStatus = bSetup ? "WebSocket server setup at " + ofToString(server.getPort()) : "WebSocket setup failed :(";
+        ofDrawBitmapString(serverStatus, 750, 740);
+
+        ofDrawBitmapString("latency: " + ofToString(latency), 750, 760);
+        ofDrawBitmapString("worst: " + ofToString(worstLatency), 860, 760);
+
+        drawConsole();
+
+        ofSetColor(ofColor::black);
+        ofDrawRectangle(50, 660, 5, 100);
+        ofDrawRectangle(60, 660, 5, 100);
+
+        ofSetColor(ofColor::silver);
+        ofDrawRectangle(35, 755 - (100 * playerModel.throttlePercent), 45, 10);
+    
+    ofSetColor(ofColor::green);
+    
+    if (bDisplayAltitude) {
+        ofDrawBitmapString("altitude: " + (altitudeExists? ofToString(altitude) : "unknown"), 80, 760);
+    }
+
+    glDepthMask(true);
 
 	theCam->begin();
     
 	ofPushMatrix();
+    
+    keyLight.draw();
+    fillLight.draw();
+    rimLight.draw();
+    
 	if (bWireframe) {                    // wireframe mode  (include axis)
 		ofDisableLighting();
 		ofSetColor(ofColor::slateGray);
@@ -307,6 +387,14 @@ void ofApp::draw(){
             ofFill();
 
 			if (!bTerrainSelected) drawAxis(playerModel.getPosition());
+            
+            if (bDisplayAltitude) {
+                ofNoFill();
+                ofSetColor(ofColor::green);
+                ofDrawLine(playerModel.getPosition(), altitudeRayIntersection);
+            }
+            
+            ofFill();
 
 			if (bDisplayBBoxes) {
 				ofNoFill();
@@ -323,7 +411,6 @@ void ofApp::draw(){
 				ofNoFill();
 				ofSetColor(ofColor::green);
 				Octree::drawBox(playerModel.collisionBox);
-                ofDrawLine(playerModel.getPosition(), altitudeRayIntersection);
 
 //                ofSetcolor(ofColor::white)
 				ofSetColor(ofColor::teal);
@@ -367,41 +454,7 @@ void ofApp::draw(){
 	ofPopMatrix();
 	theCam->end();
 
-	glDepthMask(false);
-        if (!bHide) gui.draw();
-        
-        ofSetColor(ofColor::white);
-
-		if (!bStarted) ofDrawBitmapString("Press space to start", 400, 400);
-    
-    if (crashed) {
-        ofDrawBitmapString("CRASHED", 400, 400);
-    }
-    
-    if (wonGame) {
-        ofDrawBitmapString("SUCCESSFUL LANDING IN ALL AREAS", 400, 400);
-    }
-
-        string serverStatus = bSetup ? "WebSocket server setup at " + ofToString(server.getPort()) : "WebSocket setup failed :(";
-        ofDrawBitmapString(serverStatus, 750, 740);
-
-		ofDrawBitmapString("latency: " + ofToString(latency), 750, 760);
-		ofDrawBitmapString("worst: " + ofToString(worstLatency), 860, 760);
-
-        drawConsole();
-
-		ofSetColor(ofColor::black);
-		ofDrawRectangle(50, 660, 5, 100);
-		ofDrawRectangle(60, 660, 5, 100);
-
-		ofSetColor(ofColor::silver);
-		ofDrawRectangle(35, 755 - (100 * playerModel.throttlePercent), 45, 10);
-    
-    ofSetColor(ofColor::green);
-    
-    ofDrawBitmapString("altitude: " + (altitudeExists? ofToString(altitude) : "unknown"), 80, 760);
-
-	glDepthMask(true);
+	
 }
 
 void ofApp::drawConsole() {
@@ -455,6 +508,7 @@ void ofApp::keyPressed(int key) {
         break;
     case 'A':
     case 'a':
+        bDisplayAltitude = !bDisplayAltitude;
         break;
     case 'B':
 	case 'b':
