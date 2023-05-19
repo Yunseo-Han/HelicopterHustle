@@ -18,7 +18,7 @@ public:
 	void keyPressed(int key);
 	void keyReleased(int key);
 	void mouseMoved(int x, int y ) {};
-    void mouseDragged(int x, int y, int button){};
+    void mouseDragged(int x, int y, int button);
 	void mousePressed(int x, int y, int button);
 	void mouseReleased(int x, int y, int button);
 	void windowResized(int w, int h) {};
@@ -27,7 +27,7 @@ public:
 	void drawAxis(ofVec3f);
 	void initLightingAndMaterials();
 	void extractRotationValue(const string& json, const string& key, float& value);
-//    glm::vec3 getMousePointOnPlane(glm::vec3 planePt, glm::vec3 planeNorm) {};
+    glm::vec3 getMousePointOnPlane(glm::vec3 planePt, glm::vec3 planeNorm);
 
 	// websocket server
 	ofxLibwebsockets::Server server;
@@ -45,7 +45,9 @@ public:
 	void onIdle( ofxLibwebsockets::Event& args ){};
 	void drawConsole();
     
-    bool raySelectWithOctree(ofVec3f &pointRet);
+    bool mouseRaySelectWithOctree(ofVec3f &pointRet);
+    bool altitudeRaySelectWithOctree(ofVec3f &pointRet);
+    
 
 	ofEasyCam easyCam;
 	ofCamera followCam;
@@ -98,4 +100,6 @@ public:
     ofVec3f altitudeRayIntersection;
     float altitude;
     bool altitudeExists;
+    
+    vector<Box> landingPadList;
 };

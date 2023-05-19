@@ -34,7 +34,7 @@ void ofApp::setup(){
 	initLightingAndMaterials();
 
 //	string marsObjPath = "geo/scaledPlane.obj";
-    mars.loadModel("geo/highPolyCity.obj");
+    mars.loadModel("geo/RemeshedNoLandingPads.obj");
     // mars.loadModel("geo/mars-low-5x-v2.obj", true); // TODO: should we set optimize to true?
 //	mars.loadModel(marsObjPath);
 	mars.setScaleNormalization(false);
@@ -43,7 +43,7 @@ void ofApp::setup(){
 	terrainMesh = mars.getMesh(0);
 
     // position the player node
-    playerNode.setGlobalPosition(0, 150, 0);
+    playerNode.setGlobalPosition(0, 70, 0);
 	// playerNode.pan(180);
 
     // load helicopter models
@@ -66,16 +66,21 @@ void ofApp::setup(){
         bboxList.push_back(Octree::meshBounds(playerModel.getMesh(i)));
     }
     
+    // set up landing pads
+    landingPadList.clear();
+    for (int i=1; i<mars.getNumMeshes(); i++) {
+        landingPadList.push_back(Octree::meshBounds(mars.getMesh(i)));
+    }
+    
     playerModel.setCollisionBox();
-
-
+    
     followCam.setParent(playerNode);
     followCam.setPosition(0, 5, 10);
     followCam.lookAt(playerNode);
 	
 	cout << "Building octree..." << endl;
 	ofResetElapsedTimeCounter();
-	octree.create(mars.getMesh(0), 20);
+	octree.create(mars.getMesh(0), 23);
 	cout << "Time to build octree (ms): " << ofGetElapsedTimeMicros() / 1000.0 << endl;
 
 	gui.setup();
@@ -91,33 +96,37 @@ void ofApp::update(){
 	
 	if (!bStarted) return;
 
-	playerModel.throttlePercent += heldDirection.y / 500;
-	playerModel.throttlePercent = ofClamp(playerModel.throttlePercent, 0, 1);
+    // playerMovement
+    if (!bInDrag) {
+        playerModel.throttlePercent += heldDirection.y / 500;
+        playerModel.throttlePercent = ofClamp(playerModel.throttlePercent, 0, 1);
 
-	glm::vec3 thrustForce = playerModel.thrust() * playerModel.getYawAxis();
-	playerModel.force += thrustForce;
+        glm::vec3 thrustForce = playerModel.thrust() * playerModel.getYawAxis();
+        playerModel.force += thrustForce;
 
-	float dragCoef = -10;
-	glm::vec3 dragForce = dragCoef * glm::length2(playerModel.velocity) * playerModel.velocity;
-	playerModel.force += dragForce;
+        float dragCoef = -3;
+        glm::vec3 dragForce = dragCoef * glm::length2(playerModel.velocity) * playerModel.velocity;
+        playerModel.force += dragForce;
 
-	glm::vec3 gravityForce(0, -playerModel.mass, 0);
-	playerModel.force += gravityForce;
+        glm::vec3 gravityForce(0, -playerModel.mass, 0);
+        playerModel.force += gravityForce;
 
-	playerModel.integrate();
+        playerModel.integrate();
 
+        
+        ofPoint pos = playerModel.getPosition();
+        playerNode.setPosition(pos);
+        rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
+        rotorBladesModel.setRotation(0, playerModel.getRotationAngle(0), 0, 1, 0);
+        rotorBladesModel.setRotation(1, playerModel.getRotationAngle(1), 0, 0, 1);
+        rotorBladesModel.setRotation(2, playerModel.getRotationAngle(2), 1, 0, 0);
+        rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
+    }
 	
-	ofPoint pos = playerModel.getPosition();
-	playerNode.setPosition(pos);
-	rotorBladesModel.setPosition(pos.x, pos.y, pos.z);
-	rotorBladesModel.setRotation(0, playerModel.getRotationAngle(0), 0, 1, 0);
-	rotorBladesModel.setRotation(1, playerModel.getRotationAngle(1), 0, 0, 1);
-	rotorBladesModel.setRotation(2, playerModel.getRotationAngle(2), 1, 0, 0);
-	rotorBladesModel.setRotation(3, rotorBladesModel.getRotationAngle(3) + (10 * playerModel.throttlePercent), 0, 1, 0);
     
     // finding altitude of lander from terrain
-    altitudeExists = raySelectWithOctree(altitudeRayIntersection);
-    ofVec3f altitudeRay = pos - altitudeRayIntersection;
+    altitudeExists = altitudeRaySelectWithOctree(altitudeRayIntersection);
+    ofVec3f altitudeRay = playerModel.getPosition() - altitudeRayIntersection;
     altitude = glm::length(glm::vec3(altitudeRay.x, altitudeRay.y, altitudeRay.z));
     
     // collision
@@ -137,11 +146,11 @@ void ofApp::update(){
         surfaceNormal = glm::normalize(surfaceNormal);
         
         
-        // restitution is 0.5
-        glm::vec3 collisionResponse = (1 + 0.5) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
+        // restitution is 0.9
+        glm::vec3 collisionResponse = (1 + 0.9) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
         playerModel.velocity = collisionResponse;
     } else {
-        prevPlayerPosition = pos;
+        prevPlayerPosition = playerModel.getPosition();
     }
 }
 
@@ -163,17 +172,24 @@ void ofApp::draw(){
 	}
 	else {
 		ofEnableLighting();              // shaded mode
+//        ofEnableAlphaBlending();
 		mars.drawFaces();
 		ofMesh mesh;
 
 		if (bLanderLoaded) {
 			playerModel.drawFaces();
 			rotorBladesModel.drawFaces();
-
+            
+            
 			if (!bTerrainSelected) drawAxis(playerModel.getPosition());
 
 			if (bDisplayBBoxes) {
 				ofNoFill();
+                
+                ofSetColor(ofColor::blue);
+                for (int i=0; i<landingPadList.size(); i++) {
+                    Octree::drawBox(landingPadList[i]);
+                }
                 
 				ofSetColor(ofColor::white);
 				for (int i = 0; i < playerModel.getNumMeshes(); i++) {
@@ -184,14 +200,9 @@ void ofApp::draw(){
 					ofPopMatrix();
 				}
                 
-
-				ofVec3f min = playerModel.getSceneMin() + playerModel.getPosition();
-				ofVec3f max = playerModel.getSceneMax() + playerModel.getPosition();
-
-				Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 				ofNoFill();
 				ofSetColor(ofColor::green);
-				Octree::drawBox(bounds);
+				Octree::drawBox(playerModel.collisionBox);
                 ofDrawLine(playerModel.getPosition(), altitudeRayIntersection);
 
 //                ofSetcolor(ofColor::white)
@@ -420,7 +431,7 @@ void ofApp::mousePressed(int x, int y, int button) {
         if (hit) {
             bLanderSelected = true;
             // TODO: RE-IMPLEMENT DRAGGING
-//            mouseDownPos = getMousePointOnPlane(playerModel.getPosition(), easyCam.getZAxis());
+            mouseDownPos = getMousePointOnPlane(playerModel.getPosition(), easyCam.getZAxis());
             mouseLastPos = mouseDownPos;
             bInDrag = true;
         }
@@ -430,7 +441,24 @@ void ofApp::mousePressed(int x, int y, int button) {
     }
 }
 
-bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
+bool ofApp::mouseRaySelectWithOctree(ofVec3f &pointRet) {
+    ofVec3f mouse(mouseX, mouseY);
+    ofVec3f rayPoint = easyCam.screenToWorld(mouse);
+    ofVec3f rayDir = rayPoint - easyCam.getPosition();
+    rayDir.normalize();
+    Ray ray = Ray(Vector3(rayPoint.x, rayPoint.y, rayPoint.z),
+                  Vector3(rayDir.x, rayDir.y, rayDir.z));
+    
+    float searchStart = ofGetElapsedTimef();
+    pointSelected = octree.intersect(ray, octree.root, selectedNode);
+    
+    if (pointSelected) {
+        pointRet = octree.mesh.getVertex(selectedNode.points[0]);
+    }
+    return pointSelected;
+}
+
+bool ofApp::altitudeRaySelectWithOctree(ofVec3f &pointRet) {
     ofVec3f rayPoint = playerModel.getPosition();
     ofVec3f rayDir = ofVec3f(0, -1, 0);
     rayDir.normalize();
@@ -489,6 +517,72 @@ bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
 //
 //     followCam.setParent(playerNode);
 // }
+
+void ofApp::mouseDragged(int x, int y, int button) {
+    
+    // if moving camera, don't allow mouse interaction
+    //
+    if (easyCam.getMouseInputEnabled()) return;
+    
+    if (bInDrag) {
+        
+        glm::vec3 landerPos = playerModel.getPosition();
+        
+        glm::vec3 mousePos = getMousePointOnPlane(landerPos, easyCam.getZAxis());
+        glm::vec3 delta = mousePos - mouseLastPos;
+        
+        landerPos += delta;
+        playerModel.setPosition(landerPos);
+        mouseLastPos = mousePos;
+        
+        playerModel.setCollisionBox();
+        
+        colBoxList.clear();
+        octree.intersect(playerModel.collisionBox, octree.root, colBoxList);
+        
+        
+        /*if (bounds.overlap(testBox)) {
+         cout << "overlap" << endl;
+         }
+         else {
+         cout << "OK" << endl;
+         }*/
+        
+        
+    }
+    else {
+        ofVec3f p;
+        mouseRaySelectWithOctree(p);
+    }
+}
+
+
+//  intersect the mouse ray with the plane normal to the camera
+//  return intersection point.   (package code above into function)
+//
+glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 planePt, glm::vec3 planeNorm) {
+    // Setup our rays
+    //
+    glm::vec3 origin = easyCam.getPosition();
+    glm::vec3 camAxis = easyCam.getZAxis();
+    glm::vec3 mouseWorld = easyCam.screenToWorld(glm::vec3(mouseX, mouseY, 0));
+    glm::vec3 mouseDir = glm::normalize(mouseWorld - origin);
+    float distance;
+    
+    bool hit = glm::intersectRayPlane(origin, mouseDir, planePt, planeNorm, distance);
+    
+    if (hit) {
+        // find the point of intersection on the plane using the distance
+        // We use the parameteric line or vector representation of a line to compute
+        //
+        // p' = p + s * dir;
+        //
+        glm::vec3 intersectPoint = origin + distance * mouseDir;
+        
+        return intersectPoint;
+    }
+    else return glm::vec3(0, 0, 0);
+}
 
 //--------------------------------------------------------------
 // setup basic ambient lighting in GL  (for now, enable just 1 light)
