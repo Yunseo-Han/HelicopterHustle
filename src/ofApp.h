@@ -113,4 +113,7 @@ public:
     vector<Box> landingPadList;
     // landedArea[1] = true if player landed in landedPadList[1]
     vector<bool> landedAreas;
+    
+    bool crashed = false;
+    bool wonGame = false;
 };
