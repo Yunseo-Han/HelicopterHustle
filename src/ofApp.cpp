@@ -130,10 +130,13 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    wonGame = landedAreas[0] && landedAreas[1] && landedAreas[2];
+    
 	playerModel.yaw(-heldDirection.x);
 	playerNode.panDeg(-heldDirection.x);
 
 	particleSystem.update();
+    
 
 	ofPoint pos = playerModel.getPosition();
 	playerNode.setPosition(pos);
@@ -171,6 +174,10 @@ void ofApp::update(){
 
 	// only rotational movement is allowed while game is not started
 	if (!bStarted) return;
+        
+    if (crashed) return;
+        
+    if (wonGame) return;
 
 	motorSound.setVolume(playerModel.throttlePercent);
 
@@ -185,7 +192,6 @@ void ofApp::update(){
         playerModel.force += gravityForce;
 
         playerModel.integrate();
-
         
         ofPoint pos = playerModel.getPosition();
         playerNode.setPosition(pos);
@@ -209,11 +215,26 @@ void ofApp::update(){
     ofVec3f altitudeRay = playerModel.getPosition() - altitudeRayIntersection;
     altitude = glm::length(glm::vec3(altitudeRay.x, altitudeRay.y, altitudeRay.z));
     
+    
+    
     // collision
     playerModel.setCollisionBox();
     colBoxList.clear();
     colPointList.clear();
     if (octree.intersect(playerModel.collisionBox, octree.root, colBoxList, colPointList)) {
+        // Landing area check
+        for (int i=0; i<landingPadList.size(); i++) {
+            if (landingPadList[i].overlap(playerModel.collisionBox)) {
+                // check player velocity
+                if (playerModel.velocity.y < -4) {
+                    cout << playerModel.velocity.y << endl;
+                    crashed = true;
+                }
+                
+                landedAreas[i] = true;
+            }
+        }
+        
         // adjust player position to non-colliding state
         playerModel.setPosition(prevPlayerPosition);
         
@@ -267,6 +288,7 @@ void ofApp::draw(){
     ofBackground(ofColor::black);
 
 	theCam->begin();
+    
 	ofPushMatrix();
 	if (bWireframe) {                    // wireframe mode  (include axis)
 		ofDisableLighting();
@@ -386,6 +408,14 @@ void ofApp::draw(){
         ofSetColor(ofColor::white);
 
 		if (!bStarted) ofDrawBitmapString("Press space to start", 400, 400);
+    
+    if (crashed) {
+        ofDrawBitmapString("CRASHED", ofGetWindowWidth()/2, ofGetWindowHeight()/2);
+    }
+    
+    if (wonGame) {
+        ofDrawBitmapString("SUCCESSFUL LANDING IN ALL AREAS", ofGetWindowWidth()/2, ofGetWindowHeight()/2);
+    }
 
         string serverStatus = bSetup ? "WebSocket server setup at " + ofToString(server.getPort()) : "WebSocket setup failed :(";
         ofDrawBitmapString(serverStatus, 750, 740);
