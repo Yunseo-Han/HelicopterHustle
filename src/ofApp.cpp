@@ -200,11 +200,13 @@ void ofApp::update(){
             surfaceNormal += terrainMesh.getNormal(colPointList[i]);
         }
         surfaceNormal = glm::normalize(surfaceNormal);
-        
-        
-        // restitution is 0.5
-        glm::vec3 collisionResponse = (1 + 0.9) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal) * ofGetFrameRate();
-        playerModel.force = collisionResponse;
+		// playerModel.setPosition(playerModel.getPosition() + surfaceNormal * 0.01);
+		playerModel.velocity *= -0.9;
+
+		float restitution = 15000;
+        glm::vec3 collisionResponse = (1 + restitution) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
+
+        playerModel.force += collisionResponse;
     } else {
         prevPlayerPosition = playerModel.getPosition();
     }
