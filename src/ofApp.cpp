@@ -95,6 +95,12 @@ void ofApp::setup(){
 		bladeTipEmitters.push_back(tipEmitter);
 	}
 
+	explosionEmitter.init();
+	explosionEmitter.setOneShot(true);
+	explosionEmitter.setLifespan(10);
+	explosionEmitter.setVelocity(ofVec3f(3));
+	explosionEmitter.setEmitterType(EmitterType::RadialEmitter);
+	explosionEmitter.setGroupSize(400);
 
     cout << "number of meshes in Terrain: " << mars.getNumMeshes() << endl;
     cout << "number of meshes in playerModel: " << playerModel.getNumMeshes() << endl;
@@ -143,7 +149,8 @@ void ofApp::update(){
 	playerNode.panDeg(-heldDirection.x);
 
 	particleSystem.update();
-    
+	explosionEmitter.sys->update();
+    explosionEmitter.sys->integrate();
 
 	ofPoint pos = playerModel.getPosition();
 	playerNode.setPosition(pos);
@@ -182,7 +189,10 @@ void ofApp::update(){
 	// only rotational movement is allowed while game is not started
 	if (!bStarted) return;
         
-    if (crashed) return;
+    if (crashed) {
+		explosionEmitter.update();
+		return;
+	}
         
     if (wonGame) return;
 
@@ -236,6 +246,12 @@ void ofApp::update(){
                 if (playerModel.velocity.y < -4) {
                     cout << playerModel.velocity.y << endl;
                     crashed = true;
+					destructionSound.play();
+
+					explosionEmitter.setPosition(playerModel.getPosition());
+					explosionEmitter.start();
+					explosionEmitter.update();
+					explosionEmitter.sys->update();
                 }
                 
                 landedAreas[i] = true;
@@ -259,9 +275,6 @@ void ofApp::update(){
         collisionSound.setVolume(ofMap(landingSpeed, 0, 30, 0, 0.7));
 		collisionSound.play();
 
-		if (landingSpeed > 15) { // destruction!
-			destructionSound.play();
-		}
         
         // old collision response??
 //        // restitution is 0.9
@@ -336,6 +349,15 @@ void ofApp::draw(){
 					}
 				particleShader.end();
 			ofDisableBlendMode();
+
+			if (crashed) {
+				ofEnableBlendMode(OF_BLENDMODE_ADD);
+					explosionShader.begin();
+						ofSetColor(ofColor::red);
+						explosionEmitter.sys->draw();
+					explosionShader.end();
+				ofDisableBlendMode();
+			}
             
             
             ofNoFill();

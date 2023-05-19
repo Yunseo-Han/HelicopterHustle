@@ -63,6 +63,7 @@ public:
 	
 	ParticleSystem particleSystem;
 	vector<ParticleEmitter> bladeTipEmitters;
+	ParticleEmitter explosionEmitter;
 
 	ofxAssimpModelLoader mars;
 	ofMesh terrainMesh;

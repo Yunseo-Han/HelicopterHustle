@@ -21,6 +21,7 @@ public:
 	void addForce(ParticleForce *);
 	void remove(int);
 	void update();
+	void integrate();
 	void setLifespan(float);
 	void reset();
 	int removeNear(const ofVec3f & point, float dist);
