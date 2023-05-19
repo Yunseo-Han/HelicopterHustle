@@ -207,10 +207,21 @@ void ofApp::update(){
         surfaceNormal = glm::normalize(surfaceNormal);
         
         
-        // restitution is 0.9
-        glm::vec3 collisionResponse = (1 + 0.9) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal) * ofGetFrameRate();
-        playerModel.force = collisionResponse;
         
+        // old collision response??
+//        // restitution is 0.9
+//        glm::vec3 collisionResponse = (1 + 0.9) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal) * ofGetFrameRate();
+//        playerModel.force = collisionResponse;
+        
+        
+        
+		// playerModel.setPosition(playerModel.getPosition() + surfaceNormal * 0.01);
+		playerModel.velocity *= -0.9;
+
+		float restitution = 15000;
+        glm::vec3 collisionResponse = (1 + restitution) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal);
+
+        playerModel.force += collisionResponse;
         
         // Landing area check
         for (int i=0; i<landingPadList.size(); i++) {
@@ -218,7 +229,6 @@ void ofApp::update(){
                 landedAreas[i] = true;
             }
         }
-        
     } else {
         prevPlayerPosition = playerModel.getPosition();
     }
