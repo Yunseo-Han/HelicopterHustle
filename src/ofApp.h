@@ -29,7 +29,9 @@ public:
 	void initLightingAndMaterials();
 	void extractRotationValue(const string& json, const string& key, float& value);
     glm::vec3 getMousePointOnPlane(glm::vec3 planePt, glm::vec3 planeNorm);
-
+    bool doPointSelection();
+    
+    
 	// websocket server
 	ofxLibwebsockets::Server server;
 	bool bSetup;
@@ -109,4 +111,6 @@ public:
     bool altitudeExists;
     
     vector<Box> landingPadList;
+    // landedArea[1] = true if player landed in landedPadList[1]
+    vector<bool> landedAreas;
 };

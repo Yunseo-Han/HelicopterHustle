@@ -42,7 +42,7 @@ void ofApp::setup(){
 	terrainMesh = mars.getMesh(0);
 
     // position the player node
-    playerNode.setGlobalPosition(0, 70, 0);
+    playerNode.setGlobalPosition(0, 80, 0);
 	// playerNode.pan(180);
 
     // load helicopter models
@@ -81,9 +81,15 @@ void ofApp::setup(){
     
     // set up landing pads
     landingPadList.clear();
-    for (int i=1; i<mars.getNumMeshes(); i++) {
-        landingPadList.push_back(Octree::meshBounds(mars.getMesh(i)));
-    }
+    landingPadList.push_back(Box(Vector3(-26, 69, -25), Vector3(26, 70, 26)));
+    landingPadList.push_back(Box(Vector3(16, 153, -210), Vector3(88, 154, -140)));
+    landingPadList.push_back(Box(Vector3(-209, 8, 150), Vector3(-150, 9, 205)));
+    
+    landedAreas.clear();
+    landedAreas.push_back(false);
+    landedAreas.push_back(false);
+    landedAreas.push_back(false);
+    
     
     playerModel.setCollisionBox();
     
@@ -114,7 +120,6 @@ void ofApp::update(){
 	particleSystem.update();
 
 	ofPoint pos = playerModel.getPosition();
-	
 	playerNode.setPosition(pos);
 
 	// orient rotor blades in correct position with helicopter body
@@ -202,9 +207,18 @@ void ofApp::update(){
         surfaceNormal = glm::normalize(surfaceNormal);
         
         
-        // restitution is 0.5
+        // restitution is 0.9
         glm::vec3 collisionResponse = (1 + 0.9) * (glm::dot(-playerModel.velocity, surfaceNormal) * surfaceNormal) * ofGetFrameRate();
         playerModel.force = collisionResponse;
+        
+        
+        // Landing area check
+        for (int i=0; i<landingPadList.size(); i++) {
+            if (landingPadList[i].overlap(playerModel.collisionBox)) {
+                landedAreas[i] = true;
+            }
+        }
+        
     } else {
         prevPlayerPosition = playerModel.getPosition();
     }
@@ -231,6 +245,8 @@ void ofApp::draw(){
 //        ofEnableAlphaBlending();
 		mars.drawFaces();
 		ofMesh mesh;
+        
+        
 
 		if (bLanderLoaded) {
 			playerModel.drawFaces();
@@ -249,16 +265,26 @@ void ofApp::draw(){
 					}
 				particleShader.end();
 			ofDisableBlendMode();
+            
+            
+            ofNoFill();
+            ofSetColor(ofColor::white);
+            // draw landing pads
+            for (int i = 0; i < landingPadList.size(); i++) {
+                if (landedAreas[i]) {
+                    ofSetColor(ofColor::teal);
+                } else {
+                    ofSetColor(ofColor::red);
+                }
+                Octree::drawBox(landingPadList[i]);
+            }
+            
+            ofFill();
 
 			if (!bTerrainSelected) drawAxis(playerModel.getPosition());
 
 			if (bDisplayBBoxes) {
 				ofNoFill();
-                
-                ofSetColor(ofColor::blue);
-                for (int i=0; i<landingPadList.size(); i++) {
-                    Octree::drawBox(landingPadList[i]);
-                }
                 
 				ofSetColor(ofColor::white);
 				for (int i = 0; i < playerModel.getNumMeshes(); i++) {
@@ -275,7 +301,9 @@ void ofApp::draw(){
                 ofDrawLine(playerModel.getPosition(), altitudeRayIntersection);
 
 //                ofSetcolor(ofColor::white)
-				ofSetColor(ofColor::teal); // draw colliding boxes
+				ofSetColor(ofColor::teal);
+                
+                // draw colliding boxes
 				for (int i = 0; i < colBoxList.size(); i++) {
 					Octree::drawBox(colBoxList[i]);
 				}
@@ -293,10 +321,10 @@ void ofApp::draw(){
 		mars.drawVertices();
 	}
 
-//	if (bPointSelected) { // highlight selected point (draw sphere around selected point)
-//		ofSetColor(ofColor::blue);
-//		ofDrawSphere(selectedPoint, .1);
-//	}
+	if (bPointSelected) { // highlight selected point (draw sphere around selected point)
+		ofSetColor(ofColor::blue);
+		ofDrawSphere(selectedPoint, .1);
+	}
 	
 	// ofDisableLighting(); // recursively draw octree
 	// int level = 0;

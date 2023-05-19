@@ -8,11 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		1CD33E884D9E3358252E82A1 /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 907C5B5E104864A2D3A25745 /* ofxToggle.cpp */; };
-		37E505652A12C91A003D72A3 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37E5055C2A12C91A003D72A3 /* ofApp.cpp */; };
-		37E505662A12C91A003D72A3 /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37E5055E2A12C91A003D72A3 /* Util.cpp */; };
-		37E505672A12C91A003D72A3 /* Octree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37E505602A12C91A003D72A3 /* Octree.cpp */; };
-		37E505682A12C91A003D72A3 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 37E505612A12C91A003D72A3 /* main.cpp */; };
-		37E505692A12C91A003D72A3 /* box.cc in Sources */ = {isa = PBXBuildFile; fileRef = 37E505632A12C91A003D72A3 /* box.cc */; };
+		37474A002A170C92005081C9 /* TransformObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749ED2A170C92005081C9 /* TransformObject.cpp */; };
+		37474A012A170C92005081C9 /* ParticleEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749EE2A170C92005081C9 /* ParticleEmitter.cpp */; };
+		37474A022A170C92005081C9 /* Octree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749F02A170C92005081C9 /* Octree.cpp */; };
+		37474A032A170C92005081C9 /* box.cc in Sources */ = {isa = PBXBuildFile; fileRef = 374749F32A170C92005081C9 /* box.cc */; };
+		37474A042A170C92005081C9 /* Util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749F82A170C92005081C9 /* Util.cpp */; };
+		37474A052A170C92005081C9 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749F92A170C92005081C9 /* main.cpp */; };
+		37474A062A170C92005081C9 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749FA2A170C92005081C9 /* ofApp.cpp */; };
+		37474A072A170C92005081C9 /* ParticleSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749FB2A170C92005081C9 /* ParticleSystem.cpp */; };
+		37474A082A170C92005081C9 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 374749FD2A170C92005081C9 /* Particle.cpp */; };
 		3B8120368B4FCCD80883BAF3 /* ofxAssimpAnimation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 36068D6C1D6D412786A5C4C1 /* ofxAssimpAnimation.cpp */; };
 		483908258D00B98B4BE69F07 /* ofxLabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 78D67A00EB899FAC09430597 /* ofxLabel.cpp */; };
 		483FA4F6D5FA6422C559B1F5 /* ofxAssimpMeshHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F67FE68E327BEFBD4B777571 /* ofxAssimpMeshHelper.cpp */; };
@@ -85,20 +89,27 @@
 		34A70E2C091020EE93F6B1CE /* Events.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Events.cpp; path = ../../../addons/ofxLibwebsockets/libs/ofxLibwebsockets/src/Events.cpp; sourceTree = SOURCE_ROOT; };
 		359CC070B760646EDA2EFF42 /* ui.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ui.h; path = ../../../addons/ofxLibwebsockets/libs/openssl/include/openssl/ui.h; sourceTree = SOURCE_ROOT; };
 		36068D6C1D6D412786A5C4C1 /* ofxAssimpAnimation.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ofxAssimpAnimation.cpp; path = ../../../addons/ofxAssimpModelLoader/src/ofxAssimpAnimation.cpp; sourceTree = SOURCE_ROOT; };
-		37E505572A12C91A003D72A3 /* octree-readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "octree-readme.txt"; sourceTree = "<group>"; };
-		37E505582A12C91A003D72A3 /* vector3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vector3.h; sourceTree = "<group>"; };
-		37E505592A12C91A003D72A3 /* Primitives.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Primitives.h; sourceTree = "<group>"; };
-		37E5055A2A12C91A003D72A3 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
-		37E5055B2A12C91A003D72A3 /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
-		37E5055C2A12C91A003D72A3 /* ofApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofApp.cpp; sourceTree = "<group>"; };
-		37E5055D2A12C91A003D72A3 /* ofApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofApp.h; sourceTree = "<group>"; };
-		37E5055E2A12C91A003D72A3 /* Util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Util.cpp; sourceTree = "<group>"; };
-		37E5055F2A12C91A003D72A3 /* PlayerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModel.h; sourceTree = "<group>"; };
-		37E505602A12C91A003D72A3 /* Octree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Octree.cpp; sourceTree = "<group>"; };
-		37E505612A12C91A003D72A3 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		37E505622A12C91A003D72A3 /* ray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ray.h; sourceTree = "<group>"; };
-		37E505632A12C91A003D72A3 /* box.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = box.cc; sourceTree = "<group>"; };
-		37E505642A12C91A003D72A3 /* Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Util.h; sourceTree = "<group>"; };
+		374749EB2A170C92005081C9 /* ofApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofApp.h; sourceTree = "<group>"; };
+		374749EC2A170C92005081C9 /* vector3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vector3.h; sourceTree = "<group>"; };
+		374749ED2A170C92005081C9 /* TransformObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformObject.cpp; sourceTree = "<group>"; };
+		374749EE2A170C92005081C9 /* ParticleEmitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleEmitter.cpp; sourceTree = "<group>"; };
+		374749EF2A170C92005081C9 /* ParticleEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleEmitter.h; sourceTree = "<group>"; };
+		374749F02A170C92005081C9 /* Octree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Octree.cpp; sourceTree = "<group>"; };
+		374749F12A170C92005081C9 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
+		374749F22A170C92005081C9 /* PlayerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModel.h; sourceTree = "<group>"; };
+		374749F32A170C92005081C9 /* box.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = box.cc; sourceTree = "<group>"; };
+		374749F42A170C92005081C9 /* Util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Util.h; sourceTree = "<group>"; };
+		374749F52A170C92005081C9 /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
+		374749F62A170C92005081C9 /* TransformObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransformObject.h; sourceTree = "<group>"; };
+		374749F72A170C92005081C9 /* ray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ray.h; sourceTree = "<group>"; };
+		374749F82A170C92005081C9 /* Util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Util.cpp; sourceTree = "<group>"; };
+		374749F92A170C92005081C9 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		374749FA2A170C92005081C9 /* ofApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofApp.cpp; sourceTree = "<group>"; };
+		374749FB2A170C92005081C9 /* ParticleSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleSystem.cpp; sourceTree = "<group>"; };
+		374749FC2A170C92005081C9 /* ParticleSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParticleSystem.h; sourceTree = "<group>"; };
+		374749FD2A170C92005081C9 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particle.cpp; sourceTree = "<group>"; };
+		374749FE2A170C92005081C9 /* octree-readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "octree-readme.txt"; sourceTree = "<group>"; };
+		374749FF2A170C92005081C9 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Particle.h; sourceTree = "<group>"; };
 		3D5F33D66F2F166A4E8EA438 /* cfileio.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = cfileio.h; path = ../../../addons/ofxAssimpModelLoader/libs/assimp/include/assimp/cfileio.h; sourceTree = SOURCE_ROOT; };
 		3DB46D350B91414609BDF679 /* modes.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = modes.h; path = ../../../addons/ofxLibwebsockets/libs/openssl/include/openssl/modes.h; sourceTree = SOURCE_ROOT; };
 		3DE27F8F3350100A56220776 /* ai_assert.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ai_assert.h; path = ../../../addons/ofxAssimpModelLoader/libs/assimp/include/assimp/ai_assert.h; sourceTree = SOURCE_ROOT; };
@@ -1069,20 +1080,27 @@
 		E4B69E1C0A3A1BDC003C02F2 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				37E505632A12C91A003D72A3 /* box.cc */,
-				37E5055B2A12C91A003D72A3 /* box.h */,
-				37E505612A12C91A003D72A3 /* main.cpp */,
-				37E505572A12C91A003D72A3 /* octree-readme.txt */,
-				37E505602A12C91A003D72A3 /* Octree.cpp */,
-				37E5055A2A12C91A003D72A3 /* Octree.h */,
-				37E5055C2A12C91A003D72A3 /* ofApp.cpp */,
-				37E5055D2A12C91A003D72A3 /* ofApp.h */,
-				37E5055F2A12C91A003D72A3 /* PlayerModel.h */,
-				37E505592A12C91A003D72A3 /* Primitives.h */,
-				37E505622A12C91A003D72A3 /* ray.h */,
-				37E5055E2A12C91A003D72A3 /* Util.cpp */,
-				37E505642A12C91A003D72A3 /* Util.h */,
-				37E505582A12C91A003D72A3 /* vector3.h */,
+				374749F32A170C92005081C9 /* box.cc */,
+				374749F52A170C92005081C9 /* box.h */,
+				374749F92A170C92005081C9 /* main.cpp */,
+				374749FE2A170C92005081C9 /* octree-readme.txt */,
+				374749F02A170C92005081C9 /* Octree.cpp */,
+				374749F12A170C92005081C9 /* Octree.h */,
+				374749FA2A170C92005081C9 /* ofApp.cpp */,
+				374749EB2A170C92005081C9 /* ofApp.h */,
+				374749FD2A170C92005081C9 /* Particle.cpp */,
+				374749FF2A170C92005081C9 /* Particle.h */,
+				374749EE2A170C92005081C9 /* ParticleEmitter.cpp */,
+				374749EF2A170C92005081C9 /* ParticleEmitter.h */,
+				374749FB2A170C92005081C9 /* ParticleSystem.cpp */,
+				374749FC2A170C92005081C9 /* ParticleSystem.h */,
+				374749F22A170C92005081C9 /* PlayerModel.h */,
+				374749F72A170C92005081C9 /* ray.h */,
+				374749ED2A170C92005081C9 /* TransformObject.cpp */,
+				374749F62A170C92005081C9 /* TransformObject.h */,
+				374749F82A170C92005081C9 /* Util.cpp */,
+				374749F42A170C92005081C9 /* Util.h */,
+				374749EC2A170C92005081C9 /* vector3.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -1193,31 +1211,35 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37474A062A170C92005081C9 /* ofApp.cpp in Sources */,
+				37474A082A170C92005081C9 /* Particle.cpp in Sources */,
 				3B8120368B4FCCD80883BAF3 /* ofxAssimpAnimation.cpp in Sources */,
-				37E505662A12C91A003D72A3 /* Util.cpp in Sources */,
+				37474A002A170C92005081C9 /* TransformObject.cpp in Sources */,
+				37474A052A170C92005081C9 /* main.cpp in Sources */,
 				483FA4F6D5FA6422C559B1F5 /* ofxAssimpMeshHelper.cpp in Sources */,
+				37474A042A170C92005081C9 /* Util.cpp in Sources */,
 				8DED5056525646FA71980866 /* ofxAssimpModelLoader.cpp in Sources */,
 				B8846EF8E504895A4A9EFEC0 /* ofxAssimpTexture.cpp in Sources */,
-				37E505672A12C91A003D72A3 /* Octree.cpp in Sources */,
+				37474A022A170C92005081C9 /* Octree.cpp in Sources */,
 				856AA354D08AB4B323081444 /* ofxBaseGui.cpp in Sources */,
 				5CBB2AB3A60F65431D7B555D /* ofxButton.cpp in Sources */,
+				37474A012A170C92005081C9 /* ParticleEmitter.cpp in Sources */,
 				853E0BA2F448076739446874 /* ofxColorPicker.cpp in Sources */,
 				B266578FC55D23BFEBC042E7 /* ofxGuiGroup.cpp in Sources */,
 				852E0891794923EE7583C621 /* ofxInputField.cpp in Sources */,
 				483908258D00B98B4BE69F07 /* ofxLabel.cpp in Sources */,
 				F285EB3169F1566CA3D93C20 /* ofxPanel.cpp in Sources */,
-				37E505692A12C91A003D72A3 /* box.cc in Sources */,
 				837220E80EB56CD44AD27F2A /* ofxSlider.cpp in Sources */,
 				B56FE57CC35806596D38118C /* ofxSliderGroup.cpp in Sources */,
 				1CD33E884D9E3358252E82A1 /* ofxToggle.cpp in Sources */,
 				C6C3882A0B0872D1485F3874 /* Client.cpp in Sources */,
+				37474A072A170C92005081C9 /* ParticleSystem.cpp in Sources */,
 				A78C77753D562AE8F0E928ED /* Connection.cpp in Sources */,
-				37E505682A12C91A003D72A3 /* main.cpp in Sources */,
 				F1AC6AEFB9B93C6AC45C9CA8 /* Events.cpp in Sources */,
+				37474A032A170C92005081C9 /* box.cc in Sources */,
 				86135253DC7909CA8590E157 /* Protocol.cpp in Sources */,
 				6D73A566CFEC0B462FE6E43C /* Reactor.cpp in Sources */,
 				F3AD9E2A2E56B6AF32A0BDAF /* Server.cpp in Sources */,
-				37E505652A12C91A003D72A3 /* ofApp.cpp in Sources */,
 				CCD326ED8E01272042317DD2 /* Util.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
