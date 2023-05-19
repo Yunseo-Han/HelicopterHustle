@@ -51,6 +51,18 @@ public:
         return axis;
     }
 
+    // glm::vec3 getYawAxis2() {  // idk if this works differently
+    //     glm::vec3 axis = glm::vec3(0, 1, 0);
+        
+    //     for (int rotInd = 0; rotInd < getNumRotations(); ++rotInd) {
+    //         float rotAngle = glm::radians(getRotationAngle(rotInd));
+    //         glm::vec3 rotAxis = getRotationAxis(rotInd);
+    //         axis = glm::rotate(axis, rotAngle, rotAxis);
+    //     }
+
+    //     return axis;
+    // }
+
     void yaw(float deg) {
         setYaw(getRotationAngle(0) + deg);
     }
